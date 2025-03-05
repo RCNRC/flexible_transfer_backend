@@ -1,0 +1,11 @@
+{
+  "editor.formatOnSave": true,
+  "go.formatTool": "goimports",
+  "go.lintTool": "staticcheck",
+  "go.lintFlags": ["-checks=all"],
+  "go.coverageOptions": "showBothCoveredAndUncoveredCode",
+  "go.testFlags": ["-v", "-count=1"],
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  }
+}

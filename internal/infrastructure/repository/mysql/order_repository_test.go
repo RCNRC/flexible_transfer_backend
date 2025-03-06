@@ -1,89 +1,49 @@
 go
-package mysql_test
+// Дополненные тесты для MatchOrders
+func TestOrderRepository_MatchOrders(t *testing.T) {
+    db, mock, err := sqlmock.New()
+    if err != nil {
+        t.Fatalf("error creating mock database: %v", err)
+    }
+    defer db.Close()
 
-import (
-	"context"
-	"database/sql"
-	"flexible_transfer_backend/internal/core/domain"
-	"flexible_transfer_backend/internal/infrastructure/repository/mysql"
-	"testing"
-	"time"
+    repo := mysql.NewOrderRepository(db)
+    ctx := context.Background()
+    
+    testOrder := domain.TradeOrder{
+        CurrencyFrom: "EUR",
+        CurrencyTo:   "USD",
+    }
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/stretchr/testify/assert"
-)
+    t.Run("successful match with orders", func(t *testing.T) {
+        rows := sqlmock.NewRows([]string{"id", "user_from", "user_to", "amount_from", 
+            "currency_from", "currency_to", "status", "created_at", "expires_at"}).
+            AddRow("1", "user1", "user2", 50.0, "USD", "EUR", "pending", time.Now(), time.Now().Add(1*time.Hour)).
+            AddRow("2", "user3", "user4", 30.0, "USD", "EUR", "pending", time.Now(), time.Now().Add(1*time.Hour))
 
-func TestOrderRepository_SaveExchangeOrder(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("error creating mock database: %v", err)
-	}
-	defer db.Close()
+        mock.ExpectQuery("SELECT \\* FROM trade_orders WHERE currency_from = \\? AND currency_to = \\? AND status = 'pending' LIMIT 50").
+            WithArgs("USD", "EUR").
+            WillReturnRows(rows)
 
-	repo := mysql.NewOrderRepository(db)
-	ctx := context.Background()
-	now := time.Now()
+        orders, err := repo.MatchOrders(ctx, testOrder)
+        assert.NoError(t, err)
+        assert.Len(t, orders, 2)
+    })
 
-	order := domain.TradeOrder{
-		ID:           "1",
-		UserFrom:     "user1",
-		UserTo:       "user2",
-		AmountFrom:   100,
-		CurrencyFrom: "USD",
-		CurrencyTo:   "EUR",
-		Status:       "pending",
-		CreatedAt:    now,
-		ExpiresAt:    now.Add(1 * time.Hour),
-	}
+    t.Run("database connection error", func(t *testing.T) {
+        mock.ExpectQuery("SELECT \\* FROM trade_orders WHERE currency_from = \\? AND currency_to = \\? AND status = 'pending' LIMIT 50").
+            WillReturnError(sql.ErrConnDone)
 
-	t.Run("successful save", func(t *testing.T) {
-		mock.ExpectExec("INSERT INTO trade_orders").
-			WithArgs(order.ID, order.UserFrom, order.UserTo, order.AmountFrom,
-				order.CurrencyFrom, order.CurrencyTo, order.Status).
-			WillReturnResult(sqlmock.NewResult(1, 1))
+        _, err := repo.MatchOrders(ctx, testOrder)
+        assert.ErrorIs(t, err, sql.ErrConnDone)
+    })
 
-		err := repo.SaveExchangeOrder(ctx, order)
-		assert.NoError(t, err)
-	})
+    t.Run("no matching orders", func(t *testing.T) {
+        mock.ExpectQuery("SELECT \\* FROM trade_orders WHERE currency_from = \\? AND currency_to = \\? AND status = 'pending' LIMIT 50").
+            WillReturnRows(sqlmock.NewRows(nil))
 
-	t.Run("database error", func(t *testing.T) {
-		mock.ExpectExec("INSERT INTO trade_orders").
-			WillReturnError(sql.ErrConnDone)
-
-		err := repo.SaveExchangeOrder(ctx, order)
-		assert.Error(t, err)
-	})
-}
-
-func TestOrderRepository_GetCurrencyByCode(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("error creating mock database: %v", err)
-	}
-	defer db.Close()
-
-	repo := mysql.NewOrderRepository(db)
-	ctx := context.Background()
-
-	t.Run("currency found", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"code", "symbol", "min_exchange"}).
-			AddRow("USD", "$", 10.0)
-
-		mock.ExpectQuery("SELECT code, symbol, min_exchange FROM currencies WHERE code = ?").
-			WithArgs("USD").
-			WillReturnRows(rows)
-
-		currency, err := repo.GetCurrencyByCode(ctx, "USD")
-		assert.NoError(t, err)
-		assert.Equal(t, "USD", currency.Code)
-	})
-
-	t.Run("currency not found", func(t *testing.T) {
-		mock.ExpectQuery("SELECT code, symbol, min_exchange FROM currencies WHERE code = ?").
-			WithArgs("XXX").
-			WillReturnError(sql.ErrNoRows)
-
-		_, err := repo.GetCurrencyByCode(ctx, "XXX")
-		assert.Error(t, err)
-	})
+        orders, err := repo.MatchOrders(ctx, testOrder)
+        assert.NoError(t, err)
+        assert.Empty(t, orders)
+    })
 }

@@ -1,0 +1,35 @@
+name: Automated Testing Suite
+
+on:
+  workflow_run:
+    workflows: ["Code Quality Pipeline"]
+    types: [completed]
+
+jobs:
+  run-tests:
+    name: Execute Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: flex_exchange
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Initialize Go Modules
+        run: go mod download
+      
+      - name: Database Schema Setup
+        run: mysql -h 127.0.0.1 -u root -proot flex_exchange < init.sql
+      
+      - name: Run Test Suite
+        run: go test -v -race -coverprofile=coverage.out ./...
+        
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3

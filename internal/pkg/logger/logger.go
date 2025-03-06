@@ -1,5 +1,5 @@
 go
-// Унифицированный логгер для всего приложения
+// Унифицированный логгер для всего приложения с поддержкой graceful shutdown
 package logger
 
 import (
@@ -11,13 +11,14 @@ type Logger interface {
 	Info(msg string, fields ...zap.Field)
 	Warn(msg string, fields ...zap.Field)
 	Error(msg string, fields ...zap.Field)
+	Sync() error
 }
 
 type ZapLogger struct {
 	logger *zap.Logger
 }
 
-func NewZapLogger(env string) Logger {
+func NewZapLogger(env string) *ZapLogger {
 	var config zap.Config
 	if env == "production" {
 		config = zap.NewProductionConfig()
@@ -43,4 +44,8 @@ func (l *ZapLogger) Warn(msg string, fields ...zap.Field) {
 
 func (l *ZapLogger) Error(msg string, fields ...zap.Field) {
 	l.logger.Error(msg, fields...)
+}
+
+func (l *ZapLogger) Sync() error {
+	return l.logger.Sync()
 }

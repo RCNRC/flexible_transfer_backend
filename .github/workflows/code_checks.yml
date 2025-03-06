@@ -1,6 +1,5 @@
 yaml
-# Workflow для статического анализа кода и запуска тестов
-name: Code Quality Checks
+name: Code Quality Assurance
 
 on:
   push:
@@ -8,49 +7,42 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    name: Lint with golangci-lint
+  linting:
+    name: Static Code Analysis
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Set up Go
+      - uses: actions/checkout@v3
+      
+      - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
           
-      - name: Install golangci-lint
+      - name: Install linters
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
         
-      - name: Run linter
+      - name: Run GolangCI-Lint
         run: golangci-lint run --config .golangci.yml ./...
 
-  test:
-    name: Run unit tests
+  testing:
+    name: Unit Tests Suite
     runs-on: ubuntu-latest
-    needs: lint
+    needs: linting
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        
-      - name: Set up Go
+      - uses: actions/checkout@v3
+      
+      - name: Setup Go environment
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
+          cache: true
           
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          
-      - name: Run tests
+      - name: Execute tests
         run: |
           go mod tidy
-          go test -v -race -coverprofile=coverage.out ./...
+          go test -v -race -cover -coverprofile=coverage.out ./...
           
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
-          file: coverage.out
+          files: coverage.out

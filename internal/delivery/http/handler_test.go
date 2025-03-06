@@ -1,4 +1,3 @@
-go
 // Расширенные тесты HTTP обработчиков
 package http_test
 

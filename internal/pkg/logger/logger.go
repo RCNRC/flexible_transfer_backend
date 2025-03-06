@@ -1,4 +1,3 @@
-go
 // Унифицированный логгер для всего приложения с поддержкой graceful shutdown
 package logger
 

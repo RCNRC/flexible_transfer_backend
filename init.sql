@@ -1,4 +1,3 @@
-sql
 CREATE DATABASE IF NOT EXISTS flex_exchange;
 
 CREATE TABLE IF NOT EXISTS currencies (

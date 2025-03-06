@@ -1,4 +1,3 @@
-yaml
 name: Database Schema Checks
 
 on:

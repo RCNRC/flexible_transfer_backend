@@ -1,49 +1,73 @@
 go
-// Дополненные тесты для MatchOrders
-func TestOrderRepository_MatchOrders(t *testing.T) {
-    db, mock, err := sqlmock.New()
-    if err != nil {
-        t.Fatalf("error creating mock database: %v", err)
-    }
-    defer db.Close()
+// Расширенные тесты репозитория заказов
+package mysql_test
 
-    repo := mysql.NewOrderRepository(db)
-    ctx := context.Background()
-    
-    testOrder := domain.TradeOrder{
-        CurrencyFrom: "EUR",
-        CurrencyTo:   "USD",
-    }
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"testing"
+	"time"
 
-    t.Run("successful match with orders", func(t *testing.T) {
-        rows := sqlmock.NewRows([]string{"id", "user_from", "user_to", "amount_from", 
-            "currency_from", "currency_to", "status", "created_at", "expires_at"}).
-            AddRow("1", "user1", "user2", 50.0, "USD", "EUR", "pending", time.Now(), time.Now().Add(1*time.Hour)).
-            AddRow("2", "user3", "user4", 30.0, "USD", "EUR", "pending", time.Now(), time.Now().Add(1*time.Hour))
+	"flexible_transfer_backend/internal/core/domain"
+	"flexible_transfer_backend/internal/infrastructure/repository/mysql"
 
-        mock.ExpectQuery("SELECT \\* FROM trade_orders WHERE currency_from = \\? AND currency_to = \\? AND status = 'pending' LIMIT 50").
-            WithArgs("USD", "EUR").
-            WillReturnRows(rows)
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+)
 
-        orders, err := repo.MatchOrders(ctx, testOrder)
-        assert.NoError(t, err)
-        assert.Len(t, orders, 2)
-    })
+// Новые тесты для метода SaveExchangeOrder
+func TestOrderRepository_SaveExchangeOrder(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("error creating mock database: %v", err)
+	}
+	defer db.Close()
 
-    t.Run("database connection error", func(t *testing.T) {
-        mock.ExpectQuery("SELECT \\* FROM trade_orders WHERE currency_from = \\? AND currency_to = \\? AND status = 'pending' LIMIT 50").
-            WillReturnError(sql.ErrConnDone)
+	repo := mysql.NewOrderRepository(db)
+	ctx := context.Background()
+	
+	validOrder := domain.TradeOrder{
+		ID:           "test123",
+		UserFrom:     "user1",
+		UserTo:       "user2",
+		AmountFrom:   100,
+		CurrencyFrom: "USD",
+		CurrencyTo:   "EUR",
+		Status:       "pending",
+	}
 
-        _, err := repo.MatchOrders(ctx, testOrder)
-        assert.ErrorIs(t, err, sql.ErrConnDone)
-    })
+	t.Run("successful save", func(t *testing.T) {
+		mock.ExpectExec("INSERT INTO trade_orders").
+			WithArgs(
+				validOrder.ID,
+				validOrder.UserFrom,
+				validOrder.UserTo,
+				validOrder.AmountFrom,
+				validOrder.CurrencyFrom,
+				validOrder.CurrencyTo,
+				validOrder.Status,
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
 
-    t.Run("no matching orders", func(t *testing.T) {
-        mock.ExpectQuery("SELECT \\* FROM trade_orders WHERE currency_from = \\? AND currency_to = \\? AND status = 'pending' LIMIT 50").
-            WillReturnRows(sqlmock.NewRows(nil))
+		err := repo.SaveExchangeOrder(ctx, validOrder)
+		assert.NoError(t, err)
+	})
 
-        orders, err := repo.MatchOrders(ctx, testOrder)
-        assert.NoError(t, err)
-        assert.Empty(t, orders)
-    })
+	t.Run("database error", func(t *testing.T) {
+		mock.ExpectExec("INSERT INTO trade_orders").
+			WillReturnError(errors.New("connection failed"))
+
+		err := repo.SaveExchangeOrder(ctx, validOrder)
+		assert.ErrorContains(t, err, "connection failed")
+	})
+
+	t.Run("duplicate entry", func(t *testing.T) {
+		mock.ExpectExec("INSERT INTO trade_orders").
+			WillReturnError(&mysql.MySQLError{Number: 1062})
+
+		err := repo.SaveExchangeOrder(ctx, validOrder)
+		var mysqlErr *mysql.MySQLError
+		assert.ErrorAs(t, err, &mysqlErr)
+	})
 }

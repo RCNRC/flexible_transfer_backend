@@ -2,7 +2,7 @@ name: Automated Testing Suite
 
 on:
   workflow_run:
-    workflows: ["Code Quality Pipeline"]
+    workflows: ["Code Quality Assurance"]
     types: [completed]
 
 jobs:
@@ -17,19 +17,32 @@ jobs:
           MYSQL_DATABASE: flex_exchange
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
       
-      - name: Initialize Go Modules
-        run: go mod download
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
       
-      - name: Database Schema Setup
-        run: mysql -h 127.0.0.1 -u root -proot flex_exchange < init.sql
+      - name: Wait for MySQL
+        run: |
+          for i in {1..20}; do
+            mysqladmin ping -h 127.0.0.1 -u root -proot --silent && break
+            sleep 5
+          done
       
-      - name: Run Test Suite
+      - name: Initialize database
+        run: |
+          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS flex_exchange CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+          mysql -h 127.0.0.1 -u root -proot flex_exchange < init.sql
+          mysql -h 127.0.0.1 -u root -proot -e "ALTER DATABASE flex_exchange CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
+      
+      - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...
         
-      - name: Upload Coverage
+      - name: Upload coverage
         uses: codecov/codecov-action@v3

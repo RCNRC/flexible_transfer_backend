@@ -1,6 +1,7 @@
 run:
   timeout: 5m
   tests: true
+  modules-download-mode: readonly
 
 linters:
   enable:
@@ -11,6 +12,11 @@ linters:
     - errcheck
     - stylecheck
     - gocritic
+
+linters-settings:
+  gocritic:
+    settings:
+      rangeExprCopy: 128
 
 issues:
   exclude-rules:

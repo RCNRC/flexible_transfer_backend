@@ -1,10 +1,14 @@
-CREATE DATABASE IF NOT EXISTS flex_exchange;
+CREATE DATABASE IF NOT EXISTS flex_exchange 
+  CHARACTER SET utf8mb4 
+  COLLATE utf8mb4_unicode_ci;
+
+USE flex_exchange;
 
 CREATE TABLE IF NOT EXISTS currencies (
     code VARCHAR(3) PRIMARY KEY,
     symbol VARCHAR(3) NOT NULL,
-    min_exchange DECIMAL(15,2) DEFAULT 1.00
-);
+    min_exchange DECIMAL(15,2) DEFAULT 10000
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS trade_orders (
     id VARCHAR(36) PRIMARY KEY,
@@ -16,4 +20,4 @@ CREATE TABLE IF NOT EXISTS trade_orders (
     status VARCHAR(20) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

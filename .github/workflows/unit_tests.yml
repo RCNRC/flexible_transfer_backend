@@ -2,7 +2,7 @@ name: Automated Testing Suite
 
 on:
   workflow_run:
-    workflows: ["Code Quality Pipeline"]
+    workflows: ["Code Quality Assurance"]
     types: [completed]
 
 jobs:
@@ -30,15 +30,16 @@ jobs:
       
       - name: Wait for MySQL
         run: |
-          for i in {1..10}; do
+          for i in {1..20}; do
             mysqladmin ping -h 127.0.0.1 -u root -proot --silent && break
             sleep 5
           done
       
       - name: Initialize database
         run: |
-          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS flex_exchange"
+          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS flex_exchange CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
           mysql -h 127.0.0.1 -u root -proot flex_exchange < init.sql
+          mysql -h 127.0.0.1 -u root -proot -e "ALTER DATABASE flex_exchange CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
       
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...

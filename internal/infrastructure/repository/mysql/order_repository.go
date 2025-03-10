@@ -1,4 +1,3 @@
-// Реализация репозитория MySQL с улучшенной логикой матчинга ордеров
 package mysql
 
 import (
@@ -21,7 +20,10 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 
 func (r *OrderRepository) MatchOrders(ctx context.Context, order domain.TradeOrder) ([]domain.TradeOrder, error) {
 	query := `
-		SELECT * FROM trade_orders 
+		SELECT id, user_from, user_to, amount_from, 
+		       currency_from, currency_to, status, 
+		       created_at, expires_at 
+		FROM trade_orders 
 		WHERE currency_from = ? 
 		AND currency_to = ? 
 		AND status = 'pending'
@@ -33,7 +35,7 @@ func (r *OrderRepository) MatchOrders(ctx context.Context, order domain.TradeOrd
 	rows, err := r.db.QueryContext(ctx, query, 
 		order.CurrencyTo, 
 		order.CurrencyFrom,
-		order.AmountFrom*0.95, // +/-5% допустимое отклонение
+		order.AmountFrom*0.95,
 		time.Now().UTC(),
 	)
 	
@@ -43,7 +45,11 @@ func (r *OrderRepository) MatchOrders(ctx context.Context, order domain.TradeOrd
 		}
 		return nil, fmt.Errorf("database query error: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			fmt.Printf("error closing rows: %v\n", closeErr)
+		}
+	}()
 
 	var orders []domain.TradeOrder
 	for rows.Next() {
@@ -54,6 +60,10 @@ func (r *OrderRepository) MatchOrders(ctx context.Context, order domain.TradeOrd
 			return nil, fmt.Errorf("row scanning error: %w", err)
 		}
 		orders = append(orders, o)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
 	}
 	
 	return orders, nil

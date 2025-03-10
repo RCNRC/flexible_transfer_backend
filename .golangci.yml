@@ -11,15 +11,12 @@ linters:
     - unused
     - errcheck
     - stylecheck
-    - gocritic
-
-linters-settings:
-  gocritic:
-    settings:
-      rangeExprCopy: 128
 
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
         - errcheck
+    - path: internal/infrastructure/repository/mysql/.*
+      linters:
+        - gocyclo

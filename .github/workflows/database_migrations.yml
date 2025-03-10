@@ -9,12 +9,15 @@ jobs:
   schema-validation:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Verify SQL schemas
-        uses: sql-action/dbcheck@v1
+        uses: sqlsmith-org/sql-action@v1
         with:
-          driver: mysql
-          host: localhost
+          engine: mysql
+          host: ${{ secrets.DB_HOST }}
           port: 3306
-          username: ${{ secrets.DB_USER }}
+          user: ${{ secrets.DB_USER }}
           password: ${{ secrets.DB_PASS }}
-          schema: flexible_transfer_backend/init.sql
+          database: flex_exchange
+          schema: init.sql

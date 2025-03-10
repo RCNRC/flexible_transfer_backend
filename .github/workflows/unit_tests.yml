@@ -17,19 +17,27 @@ jobs:
           MYSQL_DATABASE: flex_exchange
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
       
-      - name: Initialize Go Modules
-        run: go mod download
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache: true
       
-      - name: Database Schema Setup
-        run: mysql -h 127.0.0.1 -u root -proot flex_exchange < init.sql
+      - name: Wait for MySQL
+        run: sleep 15
       
-      - name: Run Test Suite
+      - name: Initialize database
+        run: |
+          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS flex_exchange"
+          mysql -h 127.0.0.1 -u root -proot flex_exchange < init.sql
+      
+      - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...
         
-      - name: Upload Coverage
+      - name: Upload coverage
         uses: codecov/codecov-action@v3

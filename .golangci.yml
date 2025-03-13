@@ -16,10 +16,20 @@ linters:
 linters-settings:
   gocritic:
     settings:
-      rangeExprCopy: 128
+      rangeExprCopy:
+        sizeThreshold: 128
 
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
         - errcheck
+`*`
+
+Коммит: 7a44f834f16682d4ca68f13ed6de1416441b711b
+`*`
+Fix GolangCI-Lint config for gocritic settings
+
+- Correct rangeExprCopy configuration to use map structure
+- Set size parameter parameter for rangeExprCopy check
+- Resolve YAML unmarshalling error in linter config

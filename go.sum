@@ -1,0 +1,14 @@
+github.com/DATA-DOG/go-sqlmock v1.5.2 h1:VLXaI6b7z6vk9mUhsP2jBqxBqqXvWvzE6JJqdTC4Jko=
+github.com/DATA-DOG/go-sqlmock v1.5.2/go.mod h1:8BBA7vnfBWxL3Z4Cv1jnqJyxvy442D3MYBdU0Z3X3Jw=
+github.com/davecgh/go-spew v1.1.1 h1:vj9G/u9bklvYfqO+1Kwd7Nlq3aroNtG4S0YK+XAgL0I=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/stretchr/testify v1.9.0 h1:HnqpJwwyvLLs4P1C7T1ApoVKilRtqnGQrJeLag1Y6Hg=
+github.com/stretchr/testify v1.9.0/go.mod h1:vyRyVY8KES3J6ag5H+J9j9QQ1Ij1hYmVZ0Xui/3Q6EM=
+go.uber.org/multierr v1.10.0 h1:blXXJkS/SSMIBCMFRcCG7hAYQg5XUUrSyTST0Shg0l8=
+go.uber.org/multierr v1.10.0/go.mod h1:ywCaz8jlyNNhwW9FgK0zlQcMYwCz2D8Xf44TPOLB+G4=
+go.uber.org/zap v1.27.0 h1:Z0KcS7ehmAuTLk7TPXx6EufqMdvYR0DZS4pn5Nj8LlQ=
+go.uber.org/zap v1.27.0/go.mod h1:O3mJrqhhion5tHXNYrbVanchorpXpEi2QGWUCyANOvo=
+gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9lhNnmjhO66uVJBEXaI0=
+gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

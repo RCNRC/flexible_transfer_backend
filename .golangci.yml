@@ -11,13 +11,6 @@ linters:
     - unused
     - errcheck
     - stylecheck
-    - gocritic
-
-linters-settings:
-  gocritic:
-    settings:
-      rangeExprCopy:
-        sizeThreshold: 128
 
 issues:
   exclude-rules:

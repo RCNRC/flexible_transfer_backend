@@ -26,10 +26,10 @@ issues:
         - errcheck
 `*`
 
-Коммит: 7a44f834f16682d4ca68f13ed6de1416441b711b
+Коммит: 8d7326f1d2c3bc6fe1d84db4e2dd988ddaa3b5a2
 `*`
-Fix GolangCI-Lint config for gocritic settings
+Fix GolangCI-Lint YAML configuration
 
-- Correct rangeExprCopy configuration to use map structure
-- Set size parameter parameter for rangeExprCopy check
-- Resolve YAML unmarshalling error in linter config
+- Correct indentation for gocritic settings section
+- Remove invalid parameter structure causing YAML parse error
+- Verify configuration with linter CLI before committing

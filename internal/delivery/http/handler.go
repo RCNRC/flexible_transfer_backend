@@ -1,4 +1,3 @@
-// HTTP обработчики с улучшенным логгированием и обработкой ошибок
 package http
 
 import (
@@ -22,4 +21,26 @@ func NewExchangeHandler(uc *usecase.ExchangeUseCase, l logger.Logger) *ExchangeH
 	return &ExchangeHandler{uc: uc, logger: l}
 }
 
-...
+func (h *ExchangeHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
+	var order domain.TradeOrder
+	if err := json.NewDecoder(r.Body).Decode(&order); err != nil {
+		h.logger.Error("invalid request body", zap.Error(err))
+		http.Error(w, "invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.uc.CreateExchangeOrder(r.Context(), order); err != nil {
+		h.logger.Error("order creation failed", zap.Error(err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"status": "order_created"})
+}
+
+func (h *ExchangeHandler) MatchOrders(w http.ResponseWriter, r *http.Request) {
+	from := r.URL.Query().Get("from")
+ := := r.URL.Query().Get("to")
+	// Реализация парсинга параметров и вызова usecase
+}

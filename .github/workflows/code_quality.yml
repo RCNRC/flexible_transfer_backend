@@ -22,5 +22,5 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.55
-          args: --config=.golangci.yml --timeout=5m ./internal/...
+          args: --config=.golangci.yml --timeout=5m ./...
           install-mode: goinstall

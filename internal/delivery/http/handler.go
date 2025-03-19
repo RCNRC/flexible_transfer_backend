@@ -41,6 +41,6 @@ func (h *ExchangeHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 func (h *ExchangeHandler) MatchOrders(w http.ResponseWriter, r *http.Request) {
 	from := r.URL.Query().Get("from")
- := := r.URL.Query().Get("to")
+	to := r.URL.Query().Get("to")
 	// Реализация парсинга параметров и вызова usecase
 }

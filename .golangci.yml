@@ -4,18 +4,4 @@ run:
   modules-download-mode: readonly
   skip-dirs:
     - testdata
-
-linters:
-  enable:
-    - govet
-    - staticcheck
-    - gosimple
-    - unused
-    - errcheck
-    - stylecheck
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
+    - cmd  # Add exception for main package

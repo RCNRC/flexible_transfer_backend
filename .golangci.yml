@@ -4,7 +4,6 @@ run:
   modules-download-mode: readonly
   skip-dirs:
     - testdata
-    - internal/pkg/logger
 
 linters:
   enable:
